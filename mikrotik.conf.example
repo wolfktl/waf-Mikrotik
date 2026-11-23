@@ -1,0 +1,29 @@
+# Конфиг подключения к MikroTik для auto-block-suspicious-mikrotik.sh
+# Положить в: /var/lib/auto-block/mikrotik.conf  (chmod 600, владелец root)
+# Синтаксис обычный shell: KEY="value"
+
+# Адрес роутера (обязательно)
+MIKROTIK_HOST="192.168.88.1"
+
+# SSH-порт MikroTik
+MIKROTIK_PORT="22"
+
+# Пользователь на роутере (с правами ssh + write на address-list)
+MIKROTIK_USER="waf"
+
+# Способ 1 (рекомендуется): авторизация по ключу.
+# Приватный ключ, публичную часть которого добавили на MikroTik.
+MIKROTIK_SSH_KEY="/var/lib/auto-block/mikrotik_id_ed25519"
+
+# Способ 2: пароль вместо ключа (требует пакет sshpass).
+# Если задан — ключ игнорируется. Для cron менее безопасно.
+# MIKROTIK_PASSWORD="СуперПароль"
+
+# Имя address-list, куда складываются плохие IP
+MIKROTIK_ADDRESS_LIST="waf_blacklist"
+
+# Срок блокировки в секундах (пишется в timeout= записи address-list)
+BLOCK_DURATION="7200"      # 2 часа
+
+# Таймаут SSH-подключения, сек
+SSH_CONNECT_TIMEOUT="10"
