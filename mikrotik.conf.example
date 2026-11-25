@@ -1,5 +1,5 @@
 # Конфиг подключения к MikroTik для auto-block-suspicious-mikrotik.sh
-# Положить в: /var/lib/auto-block/mikrotik.conf  (chmod 600, владелец root)
+# Положить в: /srv/waf-Mikrotik/auto-block/mikrotik.conf  (chmod 600, владелец root)
 # Синтаксис обычный shell: KEY="value"
 
 # Адрес роутера (обязательно)
@@ -13,7 +13,7 @@ MIKROTIK_USER="waf"
 
 # Способ 1 (рекомендуется): авторизация по ключу.
 # Приватный ключ, публичную часть которого добавили на MikroTik.
-MIKROTIK_SSH_KEY="/var/lib/auto-block/mikrotik_id_ed25519"
+MIKROTIK_SSH_KEY="/srv/waf-Mikrotik/auto-block/mikrotik_id_ed25519"
 
 # Способ 2: пароль вместо ключа (требует пакет sshpass).
 # Если задан — ключ игнорируется. Для cron менее безопасно.

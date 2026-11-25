@@ -56,20 +56,20 @@ User-Agent и не блокируются. Поддерживается белы
 ### 1. На веб-сервере
 
 ```bash
-mkdir -p /var/lib/auto-block
+mkdir -p /srv/waf-Mikrotik/auto-block
 install -m 0755 auto-block-suspicious-mikrotik.sh /usr/local/sbin/
-cp mikrotik.conf.example /var/lib/auto-block/mikrotik.conf
-chmod 600 /var/lib/auto-block/mikrotik.conf
+cp mikrotik.conf.example /srv/waf-Mikrotik/auto-block/mikrotik.conf
+chmod 600 /srv/waf-Mikrotik/auto-block/mikrotik.conf
 ```
 
-Отредактируйте `/var/lib/auto-block/mikrotik.conf` — минимум `MIKROTIK_HOST`.
+Отредактируйте `/srv/waf-Mikrotik/auto-block/mikrotik.conf` — минимум `MIKROTIK_HOST`.
 
 Ключ SSH (рекомендуемый способ авторизации):
 
 ```bash
-ssh-keygen -t ed25519 -N '' -f /var/lib/auto-block/mikrotik_id_ed25519
-chmod 600 /var/lib/auto-block/mikrotik_id_ed25519
-cat /var/lib/auto-block/mikrotik_id_ed25519.pub   # зальём на роутер
+ssh-keygen -t ed25519 -N '' -f /srv/waf-Mikrotik/auto-block/mikrotik_id_ed25519
+chmod 600 /srv/waf-Mikrotik/auto-block/mikrotik_id_ed25519
+cat /srv/waf-Mikrotik/auto-block/mikrotik_id_ed25519.pub   # зальём на роутер
 ```
 
 ### 2. На MikroTik (RouterOS)
@@ -114,7 +114,7 @@ auto-block-suspicious-mikrotik.sh flush   # очистить список
 
 ## Настройки
 
-Основные параметры — в `/var/lib/auto-block/mikrotik.conf` (см. `mikrotik.conf.example`):
+Основные параметры — в `/srv/waf-Mikrotik/auto-block/mikrotik.conf` (см. `mikrotik.conf.example`):
 `MIKROTIK_HOST`, `MIKROTIK_PORT`, `MIKROTIK_USER`, `MIKROTIK_SSH_KEY` или
 `MIKROTIK_PASSWORD`, `MIKROTIK_ADDRESS_LIST`, `BLOCK_DURATION` (сек).
 
@@ -125,8 +125,8 @@ auto-block-suspicious-mikrotik.sh flush   # очистить список
 Если у каждого сайта свой access-лог, например:
 
 ```nginx
-access_log /var/log/nginx/mtm.technospark.moscow.access.log;
-access_log /var/log/nginx/shop.example.ru.access.log;
+access_log /var/log/nginx/site1.example.com.access.log;
+access_log /var/log/nginx/site2.example.com.access.log;
 ```
 
 задайте в конфиге glob-маску — анализируются все совпавшие файлы сразу

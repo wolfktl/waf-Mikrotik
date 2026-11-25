@@ -20,7 +20,7 @@ VERSION="3.0.0-mikrotik"
 
 # ----------------------------- Пути и состояние ------------------------------
 LOG_FILE="/var/log/auto-block.log"
-STATE_DIR="/var/lib/auto-block"
+STATE_DIR="/srv/waf-Mikrotik/auto-block"
 COMPONENTS_DIR="$STATE_DIR/components"
 LEGACY_STATE_FILE="$STATE_DIR/enabled"
 SUSPICIOUS_STATE_FILE="$COMPONENTS_DIR/suspicious.enabled"
@@ -32,13 +32,13 @@ ACCESS_LOG_FILE="$STATE_DIR/access_log"
 #                      НАСТРОЙКИ ПОДКЛЮЧЕНИЯ К MIKROTIK
 # =============================================================================
 # Значения по умолчанию. Их можно переопределить в файле:
-#   /var/lib/auto-block/mikrotik.conf
+#   /srv/waf-Mikrotik/auto-block/mikrotik.conf
 # (обычный shell-синтаксис: KEY="value"), чтобы не хранить секреты в скрипте.
 
 MIKROTIK_HOST=""                                       # IP/hostname роутера (обязательно)
 MIKROTIK_PORT="22"                                     # SSH-порт MikroTik
 MIKROTIK_USER="waf"                                    # Пользователь на MikroTik
-MIKROTIK_SSH_KEY="/var/lib/auto-block/mikrotik_id_ed25519"  # Приватный ключ (приоритетный способ)
+MIKROTIK_SSH_KEY="/srv/waf-Mikrotik/auto-block/mikrotik_id_ed25519"  # Приватный ключ (приоритетный способ)
 MIKROTIK_PASSWORD=""                                   # Либо пароль (требует sshpass). Если задан — ключ игнорируется
 MIKROTIK_ADDRESS_LIST="waf_blacklist"                  # Имя address-list на роутере
 SSH_CONNECT_TIMEOUT=10                                 # Таймаут SSH-соединения, сек
