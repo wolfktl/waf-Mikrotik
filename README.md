@@ -56,6 +56,7 @@ User-Agent и не блокируются. Поддерживается белы
 ### 1. На веб-сервере
 
 ```bash
+apt install -y gawk            # обязательно: анализатору нужен gawk, не mawk
 mkdir -p /srv/waf-Mikrotik/auto-block
 install -m 0755 auto-block-suspicious-mikrotik.sh /usr/local/sbin/
 cp mikrotik.conf.example /srv/waf-Mikrotik/auto-block/mikrotik.conf
@@ -64,13 +65,23 @@ chmod 600 /srv/waf-Mikrotik/auto-block/mikrotik.conf
 
 Отредактируйте `/srv/waf-Mikrotik/auto-block/mikrotik.conf` — минимум `MIKROTIK_HOST`.
 
-Ключ SSH (рекомендуемый способ авторизации):
+Авторизация — по SSH-ключу (рекомендуется) или по паролю (`MIKROTIK_PASSWORD`
+в конфиге + `apt install sshpass`).
+
+Ключ SSH. **Важно:** RouterOS 7.x принимает `ed25519`, а RouterOS **6.x — только
+RSA**. Для 6.x генерируйте RSA:
 
 ```bash
-ssh-keygen -t ed25519 -N '' -f /srv/waf-Mikrotik/auto-block/mikrotik_id_ed25519
-chmod 600 /srv/waf-Mikrotik/auto-block/mikrotik_id_ed25519
-cat /srv/waf-Mikrotik/auto-block/mikrotik_id_ed25519.pub   # зальём на роутер
+# RouterOS 6.x:
+ssh-keygen -t rsa -b 2048 -N '' -f /srv/waf-Mikrotik/auto-block/mikrotik_id_rsa
+chmod 600 /srv/waf-Mikrotik/auto-block/mikrotik_id_rsa
+cat /srv/waf-Mikrotik/auto-block/mikrotik_id_rsa.pub   # зальём на роутер
+
+# RouterOS 7.x — можно ed25519:
+# ssh-keygen -t ed25519 -N '' -f /srv/waf-Mikrotik/auto-block/mikrotik_id_ed25519
 ```
+
+Путь к выбранному ключу пропишите в `mikrotik.conf` (`MIKROTIK_SSH_KEY`).
 
 ### 2. На MikroTik (RouterOS)
 
@@ -82,7 +93,7 @@ cat /srv/waf-Mikrotik/auto-block/mikrotik_id_ed25519.pub   # зальём на �
 /user add name=waf group=waf address=203.0.113.10/32
 
 # Импорт публичного ключа (файл .pub предварительно залить на роутер)
-/user ssh-keys import user=waf public-key-file=mikrotik_id_ed25519.pub
+/user ssh-keys import user=waf public-key-file=mikrotik_id_rsa.pub
 
 # Правило блокировки по списку
 /ip firewall filter add chain=input  src-address-list=waf_blacklist action=drop \

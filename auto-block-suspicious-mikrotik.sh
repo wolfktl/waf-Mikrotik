@@ -174,6 +174,17 @@ log_message() {
     echo "$(date '+%Y-%m-%d %H:%M:%S'): $1" >> "$LOG_FILE"
 }
 
+# ------------------------------- Выбор awk -----------------------------------
+# Анализатору нужен gawk: используется 3-аргументный match(str, re, arr),
+# которого НЕТ в mawk (awk по умолчанию в Debian/Ubuntu). Ищем gawk явно.
+AWK_CMD=""
+if command -v gawk >/dev/null 2>&1; then
+    AWK_CMD="gawk"
+elif awk 'BEGIN{if(match("ab",/a/,m))exit 0;exit 1}' >/dev/null 2>&1; then
+    # Системный awk оказался gawk-совместимым (поддерживает 3-арг. match)
+    AWK_CMD="awk"
+fi
+
 # ====================== Вспомогательные функции MikroTik ======================
 
 # Строгая валидация IPv4 (ничего кроме корректного адреса на роутер не уходит)
@@ -433,7 +444,7 @@ analyze_logs_fast() {
         for log_file in "${log_files[@]}"; do
             read_log_file "$log_file" 50000
         done
-    } | awk -v profile="$CMS_PROFILE" -v default_threshold="$MIN_SUSPICIOUS_REQUESTS" -v wp_soft_threshold="$WP_SOFT_THRESHOLD" '
+    } | "$AWK_CMD" -v profile="$CMS_PROFILE" -v default_threshold="$MIN_SUSPICIOUS_REQUESTS" -v wp_soft_threshold="$WP_SOFT_THRESHOLD" '
     {
         ip = $1
         if (ip ~ /^127\./ || ip == "::1" || ip == "-") next
@@ -620,6 +631,12 @@ main() {
     if [ -z "$MIKROTIK_HOST" ]; then
         log_message "✗ Не задан MIKROTIK_HOST. Укажите его в $MIKROTIK_CONF или в начале скрипта."
         echo "Ошибка: не задан MIKROTIK_HOST (см. $MIKROTIK_CONF)"
+        exit 1
+    fi
+
+    if [ -z "$AWK_CMD" ]; then
+        log_message "✗ Не найден gawk. Анализатору нужен gawk (3-арг. match), mawk не подходит."
+        echo "Ошибка: нужен gawk. Установите: apt install -y gawk  (или: yum install -y gawk)"
         exit 1
     fi
 
