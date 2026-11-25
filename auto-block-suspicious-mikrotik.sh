@@ -46,6 +46,17 @@ SSH_CONNECT_TIMEOUT=10                                 # Таймаут SSH-со
 # Длительность блокировки (сек). Пишется в timeout= записи address-list.
 BLOCK_DURATION=7200                                    # 2 часа
 
+# --- Логи nginx ---
+# Если у каждого сайта свой access-лог (например /var/log/nginx/site.access.log),
+# задайте glob-маску — анализируются ВСЕ совпавшие файлы. Можно несколько масок
+# через пробел. Пустое значение = старое поведение (один автоопределяемый лог).
+# Пример: ACCESS_LOG_GLOB="/var/log/nginx/*.access.log"
+ACCESS_LOG_GLOB=""
+# Анализировать ли свежие .gz-архивы ротации (0/1) и сколько архивов на каждый лог.
+# Для cron-режима (частый запуск) архивы обычно не нужны — хватает текущих логов.
+ANALYZE_GZ=0
+GZ_PER_LOG=1
+
 # Подхватываем пользовательский конфиг, если он есть
 MIKROTIK_CONF="$STATE_DIR/mikrotik.conf"
 if [ -f "$MIKROTIK_CONF" ]; then
@@ -57,7 +68,20 @@ fi
 #                           ДЕТЕКТ: лог-файл и профиль
 # =============================================================================
 # Определение лог-файла
-if [ -f "$ACCESS_LOG_FILE" ]; then
+if [ -n "$ACCESS_LOG_GLOB" ]; then
+    # Per-site логи: конкретный ACCESS_LOG не важен, список даёт get_log_files().
+    # Для сообщений/проверок используем первый совпавший файл.
+    LOG_FORMAT="nginx"
+    ACCESS_LOG=""
+    for _g in $ACCESS_LOG_GLOB; do
+        for _f in $_g; do
+            if [ -f "$_f" ]; then ACCESS_LOG="$_f"; break; fi
+        done
+        [ -n "$ACCESS_LOG" ] && break
+    done
+    # Если ни один файл ещё не существует — оставим маску для информативных сообщений
+    [ -z "$ACCESS_LOG" ] && ACCESS_LOG="${ACCESS_LOG_GLOB%% *}"
+elif [ -f "$ACCESS_LOG_FILE" ]; then
     ACCESS_LOG=$(head -n1 "$ACCESS_LOG_FILE" 2>/dev/null)
     if echo "$ACCESS_LOG" | grep -qi "httpd"; then
         LOG_FORMAT="apache"
@@ -320,6 +344,30 @@ read_log_file() {
 
 # Список логов для анализа (текущий + свежие архивы)
 get_log_files() {
+    # Режим per-site: собираем все файлы по glob-маске(ам) + опционально их .gz
+    if [ -n "$ACCESS_LOG_GLOB" ]; then
+        local files=() f base gz gz_count
+        for pattern in $ACCESS_LOG_GLOB; do
+            for f in $pattern; do
+                [ -f "$f" ] || continue
+                files+=("$f")
+                if [ "$ANALYZE_GZ" = "1" ]; then
+                    # База без .log (например /var/log/nginx/site.access) для поиска архивов
+                    base="${f%.log}"
+                    gz_count=0
+                    while IFS= read -r gz; do
+                        [ -n "$gz" ] && [ -f "$gz" ] || continue
+                        files+=("$gz")
+                        ((gz_count++))
+                        [ "$gz_count" -ge "$GZ_PER_LOG" ] && break
+                    done < <(ls -t "${base}".log*.gz "${base}".log-*.gz 2>/dev/null | head -n "$GZ_PER_LOG")
+                fi
+            done
+        done
+        printf '%s\n' "${files[@]}"
+        return
+    fi
+
     local log_dir; log_dir=$(dirname "$ACCESS_LOG")
     local log_name; log_name=$(basename "$ACCESS_LOG")
     local log_base="${log_name%.*}"

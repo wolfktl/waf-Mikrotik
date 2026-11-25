@@ -118,7 +118,28 @@ auto-block-suspicious-mikrotik.sh flush   # очистить список
 `MIKROTIK_HOST`, `MIKROTIK_PORT`, `MIKROTIK_USER`, `MIKROTIK_SSH_KEY` или
 `MIKROTIK_PASSWORD`, `MIKROTIK_ADDRESS_LIST`, `BLOCK_DURATION` (сек).
 
-Пороги детекта, белые списки и паттроны правятся в начале самого скрипта.
+Пороги детекта, белые списки и паттерны правятся в начале самого скрипта.
+
+### Несколько сайтов (per-site логи)
+
+Если у каждого сайта свой access-лог, например:
+
+```nginx
+access_log /var/log/nginx/mtm.technospark.moscow.access.log;
+access_log /var/log/nginx/shop.example.ru.access.log;
+```
+
+задайте в конфиге glob-маску — анализируются все совпавшие файлы сразу
+(`*.error.log` при этом не трогаются):
+
+```ini
+ACCESS_LOG_GLOB="/var/log/nginx/*.access.log"
+```
+
+Можно указать несколько масок через пробел. Анализ `.gz`-архивов ротации
+включается `ANALYZE_GZ="1"` (`GZ_PER_LOG` — сколько архивов на каждый лог);
+для частого запуска по cron архивы обычно не нужны. Если `ACCESS_LOG_GLOB`
+пуст — используется автоопределение одного лога, как раньше.
 
 ## Лицензия
 
