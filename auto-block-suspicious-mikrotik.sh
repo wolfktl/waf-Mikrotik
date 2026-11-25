@@ -528,7 +528,12 @@ analyze_logs_fast() {
             suspicious_match = 1
         }
 
-        if (url ~ /(union.*select|concat.*\(|char\(|0x[0-9a-f]+)/) {
+        # SQL-инъекции. Паттерн hex-литерала 0x... намеренно сужен: перед "0x"
+        # не должно быть буквы/цифры и требуется >=6 hex подряд — иначе он ловил
+        # случайные "0x+hex" внутри токенов (напр. access_token Nextcloud) и давал
+        # массовые ложные блокировки легитимного трафика.
+        if (url ~ /(union.*select|concat.*\(|char\()/ ||
+            url ~ /(^|[^0-9a-zA-Z])0x[0-9a-f]{6,}/) {
             suspicious_match = 1
         }
 
