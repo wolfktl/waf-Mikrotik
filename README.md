@@ -123,6 +123,15 @@ auto-block-suspicious-mikrotik.sh flush   # очистить список
 */5 * * * * root /usr/local/sbin/auto-block-suspicious-mikrotik.sh run >/dev/null 2>&1
 ```
 
+> **Важно про права на cron-файл.** Файлы в `/etc/cron.d` cron выполняет, только
+> если они принадлежат root и не доступны на запись group/other, иначе задача молча
+> игнорируется (в логе `INSECURE MODE (group/other writable)`):
+> ```bash
+> chown root:root /etc/cron.d/auto-block-mikrotik
+> chmod 644 /etc/cron.d/auto-block-mikrotik
+> ```
+> Имя файла — без точек/расширений. Проверка: `journalctl -u cron --since "-3min" | grep auto-block`.
+
 ## Настройки
 
 Основные параметры — в `/srv/waf-Mikrotik/auto-block/mikrotik.conf` (см. `mikrotik.conf.example`):
